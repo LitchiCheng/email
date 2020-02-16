@@ -37,7 +37,7 @@ email.sendEmail()
 
 #### Recieving email using 163
 ```python
-email = rcmail.RecieveEmail('***@163.com', 'password', "pop.163.com")
+email = RecieveEmail('***@163.com', 'password', "pop.163.com")
 if email.getMailNum() > 0:
     tmp_content = email.getMailContent(1)
     tmp_reciever = email.getMailFrom(1)
