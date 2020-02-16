@@ -1,5 +1,4 @@
-# from Modules.py_SendEmail import Email,SMTPServe
-# from Modules.py_RecieveEmail import EMailConsole
+
 import os,configparser,sys
 
 modules_path = (os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -40,8 +39,9 @@ if __name__ == "__main__":
                     reciever.append(tmp_reciever)
                     mail_send.setReciever(reciever)
                     mail_send.setSubject("帮助")
-                    mail_send.addPlainContent("1. 立即查询保存基金情况\n")
-                    mail_send.addPlainContent("...发送相应序号即可调用功能...\n")
+                    func_num = int(cf.get("func","num"))
+                    for i in range(1,func_num+1):
+                        mail_send.addPlainContent(cf.get("func","func"+str(i))+"\n")
                     mail_send.sendEmail()
                 elif tmp_content.find("1") != -1:
                     os.system("python E:\code\python\py-FundOnline\py_Email-fund.py")        
