@@ -12,18 +12,20 @@ from email.utils import parseaddr
 class RecieveEmail:
     def __init__(self, usr_account, usr_pwd, pop_address):
         self.usr_account = usr_account
-        self.usr_pwd = usr_pwd
+        self.usr_pwd = str(usr_pwd)
         self.pop_address = pop_address
         try:
             self.server = poplib.POP3_SSL(pop_address)
-            
             self.server.user(usr_account)
             self.server.pass_(usr_pwd)
-            
+            self.__login = True
         except poplib.error_proto as e:
-            print(e)
+            self.__login = False
             print("login failed:" + str(e))
-        
+
+    def loginStatus(self):
+        return self.__login
+
     def __decode_str(self, s):
         value, charset = decode_header(s)[0]
         if charset:
@@ -65,7 +67,7 @@ class RecieveEmail:
                 self.fromStr = addr
                 return self.fromStr
             else:
-                return "None"
+                return "Can't find mail from"
 
     def getMailSubject(self, index):
         if self.getMailNum() >= index:
@@ -76,11 +78,13 @@ class RecieveEmail:
                 self.subjectStr = value
                 return self.subjectStr
             else:
-                return "None"
+                return "Can't find mail subject"
 
     def __parseSinglePart(self, msg):
         content_type = msg.get_content_type()
-        if content_type == 'text/plain' or content_type == 'text/html':
+        if not (content_type == 'text/plain' or content_type == 'text/html'):
+            return "None"
+        else:
             content = msg.get_payload(decode=True)
             charset = self.__guess_charset(msg)
             if charset:
@@ -88,23 +92,24 @@ class RecieveEmail:
             if content_type == "text/plain" or content_type == 'text/html':
                 self.content = content
                 return self.content
-        else:
-            return "None"
 
     def getMailContent(self, index):
-        if self.getMailNum() >= index:
+        if self.getMailNum() < index:
+            return "None" 
+        else:
             msg = self.__parseEmail(index)
-            if (msg.is_multipart()):
+            if not msg.is_multipart():
+                return self.__parseSinglePart(msg)
+            else:
                 parts = msg.get_payload()
                 for n, part in enumerate(parts):
                     if 'text/plain' == part.get_content_type():
                         return self.__parseSinglePart(part)
-            else:
-                return self.__parseSinglePart(msg)
-        else:
-            return "None"
-
+                
     def delMail(self, index):
+        '''
+        delMail just mark "index" mail in dele status and finsh deletion when loginOut 
+        '''
         if self.getMailNum() >= index:
             self.server.dele(index)
 
@@ -113,10 +118,13 @@ class RecieveEmail:
             self.server = poplib.POP3_SSL(self.pop_address)
             self.server.user(self.usr_account)
             self.server.pass_(self.usr_pwd)
+            self.__login = True
             return True
         except poplib.error_proto as e:
+            self.__login = False
             print("login failed:" + str(e))
             return False
 
     def loginOut(self):
+        self.__login = False
         self.server.quit()

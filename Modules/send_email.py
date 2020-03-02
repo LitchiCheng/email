@@ -23,13 +23,13 @@ class SendEmail:
         try:
             self.smtpObj = smtplib.SMTP_SSL(usr_server, 465)
             self.smtpObj.login(usr_name, usr_pwd) 
-            self.__login_fail = True
+            self.__login = True
         except smtplib.SMTPException as e:
-            self.__login_fail = False
+            self.__login = False
             print("login fail:" + str(e))
 
     def loginStatus(self):
-        return self.__login_fail
+        return self.__login
 
     def setSender(self, sdr_address):
         self.msg["From"] = "{}".format(sdr_address)
